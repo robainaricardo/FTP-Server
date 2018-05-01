@@ -17,8 +17,8 @@
 void quit();
 void user();
 void pass();
-void comando_desconhecido();
-
+void desconhecido();
+void pwd();
 
 int servidorSocket; //Socket do servidor
 int clienteSocket; //Socket do cliente conectado ao servidor
@@ -27,11 +27,13 @@ int estado = 0;
 
 int tamanho_msg_recebida;
 
-char bufferIda[5];
+char bufferIda[100];
 char bufferVolta[TAMANHO_MENSAGEM];
 
 struct sockaddr_in servidor; //Estrutura que mantem os dados do socket após o bind (Ip e porta)
 struct sockaddr_in cliente;
+
+char diretorio[200];
 
 int main(){
 
@@ -81,8 +83,13 @@ int main(){
     printf("+++++++++++++++++++++++++++++++++++++++\n");
     //++++++++++++++++++++++ACCEPT+++++++++++++++++++++++++++++
     clienteSocket = accept(servidorSocket, NULL, NULL);
-    strcpy(bufferIda,"sOn");
-    send(clienteSocket, bufferIda, strlen("sOn"), 0);
+    strcpy(bufferIda,"Conectado com o Servidor! Aguardando usuário");
+    send(clienteSocket, bufferIda, strlen(bufferIda), 0);
+
+
+      getcwd(diretorio, sizeof(diretorio));
+      printf("%s\n", diretorio);
+
 
   	do{ //Loop do Send/recive
       //clienteSocket = accept(servidorSocket, NULL, NULL);
@@ -105,8 +112,11 @@ int main(){
         }else if(strcasecmp(comando, "QUIT") == 0){
           quit();
           break;
-        }else{
-          comando_desconhecido();
+        }else if(strcasecmp(comando, "PWD") == 0){
+          pwd();
+        }
+        else{
+          desconhecido();
         }
 
 
@@ -147,7 +157,36 @@ void pass(){
   send(clienteSocket, bufferIda, sizeof(bufferIda), 0);
 }
 
-void comando_desconhecido(){
+void desconhecido(){
   strcpy(bufferIda,"502\n");
   send(clienteSocket, bufferIda, sizeof(bufferIda), 0);
+}
+
+void pwd(){
+  getcwd(diretorio, sizeof(diretorio));
+  strcpy(bufferIda,diretorio);
+  send(clienteSocket, bufferIda, sizeof(bufferIda), 0);
+  printf("%s\n", diretorio);
+}
+
+//=============Para implementar
+
+void port(){
+
+}
+
+void pasv(){
+
+}
+
+void type(){
+
+}
+
+void retr(){
+
+}
+
+void stor(){
+
 }
