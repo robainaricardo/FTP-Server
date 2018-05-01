@@ -13,20 +13,29 @@
 
 #define TAMANHO_MENSAGEM 100
 
+//Passar para o .h
+void quit();
+void user();
+void pass();
+void comando_desconhecido();
+
+
+int servidorSocket; //Socket do servidor
+int clienteSocket; //Socket do cliente conectado ao servidor
+
+int estado = 0;
+
+int tamanho_msg_recebida;
+
+char bufferIda[5];
+char bufferVolta[TAMANHO_MENSAGEM];
+
+struct sockaddr_in servidor; //Estrutura que mantem os dados do socket após o bind (Ip e porta)
+struct sockaddr_in cliente;
+
 int main(){
 
-  int servidorSocket; //Socket do servidor
-  int clienteSocket; //Socket do cliente conectado ao servidor
 
-  int estado = 0;
-
-  int tamanho_msg_recebida;
-
-  char bufferIda[4];
-  char bufferVolta[TAMANHO_MENSAGEM];
-
-  struct sockaddr_in servidor; //Estrutura que mantem os dados do socket após o bind (Ip e porta)
-  struct sockaddr_in cliente;
 
   //++++++++++++++++++++++SOCKET+++++++++++++++++++++++++++++
   //se socket retornar -1 é que não conseguiu
@@ -65,59 +74,80 @@ int main(){
   }
   //++++++++++++++++++++++LISTEN+++++++++++++++++++++++++++++
 
-  printf("Servidor Ligado Esperando clientes...\n");
-  //++++++++++++++++++++++ACCEPT+++++++++++++++++++++++++++++
-  clienteSocket = accept(servidorSocket, NULL, NULL);
-  strcpy(bufferIda,"sOn");
-  send(clienteSocket, bufferIda, strlen("sOn"), 0);
+  //loop para manter o servidor online quando um cliente da QUIT
+  do{
+    printf("+++++++++++++++++++++++++++++++++++++++\n");
+    printf("Servidor Liberado Esperando clientes...\n");
+    printf("+++++++++++++++++++++++++++++++++++++++\n");
+    //++++++++++++++++++++++ACCEPT+++++++++++++++++++++++++++++
+    clienteSocket = accept(servidorSocket, NULL, NULL);
+    strcpy(bufferIda,"sOn");
+    send(clienteSocket, bufferIda, strlen("sOn"), 0);
 
-	do{
-    //clienteSocket = accept(servidorSocket, NULL, NULL);
-    tamanho_msg_recebida = recv(clienteSocket, bufferVolta, TAMANHO_MENSAGEM, 0);
-
-
-    //====Comandos FTP
-    if(tamanho_msg_recebida > 0){
-      printf("Recebido: %s",bufferVolta);
-      bufferVolta[tamanho_msg_recebida] = '\0';
+  	do{ //Loop do Send/recive
+      //clienteSocket = accept(servidorSocket, NULL, NULL);
+      tamanho_msg_recebida = recv(clienteSocket, bufferVolta, TAMANHO_MENSAGEM, 0);
 
 
-      //Não consigo COmparar essa Caraleas
-      if(strcmp("User ricardo", bufferVolta) == 0){
-        estado = 1;
-        strcpy(bufferIda,"331");
-        send(clienteSocket, bufferIda, sizeof(bufferIda), 0);
-        printf("Entrou n User\n");
+      //====Comandos FTP
+      if(tamanho_msg_recebida > 0){
+        printf("Recebido: %s",bufferVolta);
+        bufferVolta[tamanho_msg_recebida] = '\0';
+
+        //pega o comando da mensagem
+        char *comando = strtok(bufferVolta, " ");
+
+        //Aqui vai os condicionais com os comandos e chama as funções dos comandos
+        if(strcasecmp(comando, "USER") == 0){
+          user();
+        }else if(strcasecmp(comando, "PASS") == 0){
+          pass();
+        }else if(strcasecmp(comando, "QUIT") == 0){
+          quit();
+          break;
+        }else{
+          comando_desconhecido();
+        }
+
+
+
+
+
       }
+  	}while(1);
+  }while (1);
 
-      if(strcmp("PASS ok", bufferVolta) == 0){
-        estado = 2;
-        strcpy(bufferIda,"332");
-        send(clienteSocket, bufferIda, sizeof(bufferIda), 0);
-        printf("Entrou n PASS\n");
-      }
-
-
-      //ISSO FUNCIONA
-      if('0' == *bufferVolta)
-        printf("Teste\n");
-
-      /*
-      if(strcmp(bufferVolta,"QUIT")){
-        strcpy(bufferIda,"331");
-        send(clienteSocket, bufferIda, sizeof(bufferIda), 0);
-        close(clienteSocket);
-        break;
-      }
-      */
-    }
-
-
-	}while(1);
-  printf("Saiu do while\n");
 
   close(servidorSocket);
   //fflush(stdout);
 
   return 0;
+}
+
+
+//Funções dois colocar em outro arquivo
+
+void quit(){
+  estado = 0; //esperando cliente
+  strcpy(bufferIda,"211\n");
+  send(clienteSocket, bufferIda, sizeof(bufferIda), 0);
+  printf("Coneceção encerrada com o cliente %d\n", clienteSocket);
+  close(clienteSocket);
+}
+
+void user(){
+  estado = 1; // esperando senha
+  strcpy(bufferIda,"331\n");
+  send(clienteSocket, bufferIda, sizeof(bufferIda), 0);
+}
+
+void pass(){
+  estado = 2; // usuário logado
+  strcpy(bufferIda,"230\n");
+  send(clienteSocket, bufferIda, sizeof(bufferIda), 0);
+}
+
+void comando_desconhecido(){
+  strcpy(bufferIda,"502\n");
+  send(clienteSocket, bufferIda, sizeof(bufferIda), 0);
 }
