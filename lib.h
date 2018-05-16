@@ -33,9 +33,9 @@ Código base utilizado neste projeto: https://github.com/mrleiju/FTPd
 //Assinatura das funções
 void iniciaSocket(struct sockaddr_in * sa, char * ip_addr, unsigned int port);
 int criarSocket(struct sockaddr_in * local);
-void messenger(int msg_num, int cd);
-int auth(int cd);
-void shutdown_connection(int cd, int sd);
+void mensagem(int msg_num, int cd);
+int autencicacao(int cd);
+void encerrarConexao(int cd, int sd);
 void port_parser(char * buf, struct sockaddr_in * ca);
 int create_data_channel(const struct sockaddr_in * ca);
 void list(const struct sockaddr_in * ca, char * folder);
