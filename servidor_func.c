@@ -17,6 +17,8 @@ Código base utilizado neste projeto: https://github.com/mrleiju/FTPd
 //inclui a biblioteca lib.h
 #include"lib.h"
 
+char data[BUF_SIZE] = "";
+int meio, novoMeio;
 
 //Função que inicial as variaveis do sockaddr_in, onde:
 //     sa      -   é p ponteiro para a estrutura sockaddr_in
@@ -199,7 +201,7 @@ int criarConexaoDados(const struct sockaddr_in * ca){
 void list(const struct sockaddr_in * ca, char * folder){
 
     char cmd[BUF_SIZE] = "ls -l ";
-    char data[BUF_SIZE] = "";
+    data[BUF_SIZE] = "";
     int sd = criarConexaoDados(ca);
 
     // append the parameter if needed.
@@ -247,15 +249,38 @@ int retr(int cd, const struct sockaddr_in * ca, char * file){
 
     mensagem(150, cd);
 
-    char data[BUF_SIZE] = "";
+    data[BUF_SIZE] = "";
     int sd = criarConexaoDados(ca);
 
     // length equals to the bytes read from the file.
     int length = fread(data, 1, BUF_SIZE, fp);
-    while(length > 0){
-        write(sd, data, length);
-        length = fread(data, 1, BUF_SIZE, fp);
-    }
+
+    meio = length/2;
+    novoMeio = (meio-BUF_SIZE);
+    //data2 = data[meio];
+
+
+    struct arg_struct args1, args2;
+    args1.tipo = 1;
+    args1.fp = fp;
+    args1.length = length;
+    args1.sd = sd;
+
+    args2.tipo = 2;
+    args2.fp = fp;
+    args2.length = length;
+    args2.sd = sd;
+
+    pthread_t t1;
+    //cria as threads
+    pthread_create(&t1, NULL, enviarThread, (void*)&args1);
+    pthread_t t2;
+    pthread_create(&t2, NULL, enviarThread, (void*)&args2);
+    pthread_join(t1, NULL);
+    pthread_join(t2, NULL);
+
+
+
     fclose(fp);
     shutdown(sd, SHUT_RDWR);
     close(sd);
@@ -276,7 +301,9 @@ int stor(int cd, const struct sockaddr_in * ca, char * file){
         fprintf(stderr, "Nome do arquivo não enviado.\n");
         return 1;
     }
+
     FILE * fp = fopen(file, "wb");
+
     if (fp == NULL){
         fprintf(stderr, "Não foi possivel salvar o arquivo %s.\n", file);
         return 2;
@@ -284,15 +311,88 @@ int stor(int cd, const struct sockaddr_in * ca, char * file){
 
     mensagem(150, cd);
 
-    char data[BUF_SIZE] = "";
+    data[BUF_SIZE] = "";
     int sd = criarConexaoDados(ca);
     int length = read(sd, data, BUF_SIZE);
-    while(length > 0){
-        fwrite(data, 1, length, fp);
-        length = read(sd, data, BUF_SIZE);
-    }
+    meio = (length/2);
+    novoMeio = (meio-BUF_SIZE);
+    //data2 = data[meio];
+
+
+    struct arg_struct args1, args2;
+    args1.tipo = 1;
+    args1.fp = fp;
+    args1.length = length;
+    args1.sd = sd;
+
+    args2.tipo = 2;
+    args2.fp = fp;
+    args2.length = length;
+    args2.sd = sd;
+
+    pthread_t t1;
+    //cria as threads
+    pthread_create(&t1, NULL, receberThread, (void*)&args1);
+    pthread_t t2;
+    pthread_create(&t2, NULL, receberThread, (void*)&args2);
+    pthread_join(t1, NULL);
+    pthread_join(t2, NULL);
+
     fclose(fp);
     shutdown(sd, SHUT_RDWR);
     close(sd);
     return 0;
+}
+
+//Funcionando!!!
+void *receberThread(void *arg){
+  struct arg_struct *args = (struct arg_struct *)arg;
+  FILE * fp = args->fp;
+  int length = args->length;
+  int sd = args->sd;
+  //int meio = (length/2);
+  int tipo = args->tipo;
+
+  printf("%d\n", tipo);
+
+  if(tipo == 1){
+    printf("Entrou na thread 1\n");
+    while(length > meio){
+        fwrite(data, 1, length, fp);
+        length = read(sd, data, BUF_SIZE);
+    }
+  }else{
+    printf("Entrou na thread 2\n");
+    while(novoMeio > 0){
+        fwrite(data, 1, novoMeio, fp);
+        novoMeio = read(sd, data, BUF_SIZE);
+    }
+  }
+
+}
+
+void *enviarThread(void *arg){
+  struct arg_struct *args = (struct arg_struct *)arg;
+  FILE * fp = args->fp;
+  int length = args->length;
+  int sd = args->sd;
+  //int meio = (length/2);
+  int tipo = args->tipo;
+
+  printf("%d\n", tipo);
+
+  if(tipo == 1){
+    printf("Entrou na thread 1\n");
+    while(length > meio){
+        write(sd, data, length);
+        length = fread(data, 1, BUF_SIZE, fp);
+    }
+  }else{
+    printf("Entrou na thread 2\n");
+    while(novoMeio > 0){
+        write(sd, data, novoMeio);
+        novoMeio = fread(data, 1, BUF_SIZE, fp);
+    }
+  }
+
 }
