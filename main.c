@@ -44,7 +44,7 @@ int main(){
 
     while(true){ // keep listening on the port
         printf(" +++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
-        printf("+++++++++++++++++    Servidor FTP ON     ++++++++++++++++++\n");
+        printf("++++++++++++++++    Servidor V2 FTP ON    +++++++++++++++++\n");
         printf("++++++++++++++++   Aguardando Clientes... +++++++++++++++++\n");
         printf(" +++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
         // cd is the connection descriptor

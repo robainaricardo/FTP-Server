@@ -297,53 +297,32 @@ int retr(int cd, const struct sockaddr_in * ca, char * file){
 //      1       -   file's name is is NULL
 //      2       -   cannot find the file
 int stor(int cd, const struct sockaddr_in * ca, char * file){
-    if(file == NULL){
-        fprintf(stderr, "Nome do arquivo não enviado.\n");
-        return 1;
-    }
+  if(file == NULL){
+      fprintf(stderr, "Nome do arquivo não enviado.\n");
+      return 1;
+  }
+  FILE * fp = fopen(file, "wb");
+  if (fp == NULL){
+      fprintf(stderr, "Não foi possivel salvar o arquivo %s.\n", file);
+      return 2;
+  }
 
-    FILE * fp = fopen(file, "wb");
+  mensagem(150, cd);
 
-    if (fp == NULL){
-        fprintf(stderr, "Não foi possivel salvar o arquivo %s.\n", file);
-        return 2;
-    }
-
-    mensagem(150, cd);
-
-    data[BUF_SIZE] = "";
-    int sd = criarConexaoDados(ca);
-    int length = read(sd, data, BUF_SIZE);
-    meio = (length/2);
-    novoMeio = (meio-BUF_SIZE);
-    //data2 = data[meio];
-
-
-    struct arg_struct args1, args2;
-    args1.tipo = 1;
-    args1.fp = fp;
-    args1.length = length;
-    args1.sd = sd;
-
-    args2.tipo = 2;
-    args2.fp = fp;
-    args2.length = length;
-    args2.sd = sd;
-
-    pthread_t t1;
-    //cria as threads
-    pthread_create(&t1, NULL, receberThread, (void*)&args1);
-    pthread_t t2;
-    pthread_create(&t2, NULL, receberThread, (void*)&args2);
-    pthread_join(t1, NULL);
-    pthread_join(t2, NULL);
-
-    fclose(fp);
-    shutdown(sd, SHUT_RDWR);
-    close(sd);
-    return 0;
+  char data[BUF_SIZE] = "";
+  int sd = criarConexaoDados(ca);
+  int length = read(sd, data, BUF_SIZE);
+  while(length > 0){
+      fwrite(data, 1, length, fp);
+      length = read(sd, data, BUF_SIZE);
+  }
+  fclose(fp);
+  shutdown(sd, SHUT_RDWR);
+  close(sd);
+  return 0;
 }
 
+/*
 //Funcionando!!!
 void *receberThread(void *arg){
   struct arg_struct *args = (struct arg_struct *)arg;
@@ -370,6 +349,7 @@ void *receberThread(void *arg){
   }
 
 }
+*/
 
 void *enviarThread(void *arg){
   struct arg_struct *args = (struct arg_struct *)arg;

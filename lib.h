@@ -53,6 +53,6 @@ int retr(int cd, const struct sockaddr_in * ca, char * file);
 int stor(int cd, const struct sockaddr_in * ca, char * file);
 
 //threads
-void *receberThread(void *arg); //put
+//void *receberThread(void *arg); //put
 
 void *enviarThread(void *arg); //get
