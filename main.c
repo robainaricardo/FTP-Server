@@ -15,11 +15,8 @@ Código base utilizado neste projeto: https://github.com/mrleiju/FTPd
 
 #include"lib.h"
 
-
-
 // Main function controling the entire logic of the ftp server
 int main(){
-
     // initialize socket descriptor and sockaddr_in variable
     unsigned int port = PORTA;
     char buf[BUF_SIZE + 1] = "";
@@ -42,11 +39,15 @@ int main(){
         return -3;
     }
 
+    //Criando instancias do servidor
+    for (int i = 0; i < MAX_CONNECTIONS; i++) {
+      fork();
+    }
+
     while(true){ // keep listening on the port
-        printf(" +++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
-        printf("++++++++++++++++    Servidor V2 FTP ON    +++++++++++++++++\n");
-        printf("++++++++++++++++   Aguardando Clientes... +++++++++++++++++\n");
-        printf(" +++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
+        printf("+++++++++++++++++    Servidor FTP ON     ++++++++++++++++++\n");
+
+
         // cd is the connection descriptor
         image_mode = false;
         int cd = accept(sd, NULL, NULL);

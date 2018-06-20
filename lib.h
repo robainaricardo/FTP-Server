@@ -25,9 +25,10 @@ Código base utilizado neste projeto: https://github.com/mrleiju/FTPd
 #include <arpa/inet.h>
 #include <pthread.h> //para threads
 
+
 //Definição das constantes utilizadas
 #define BUF_SIZE 128        // tamanho do buffer
-#define MAX_CONNECTIONS 4  // numero maximo de coneções
+#define MAX_CONNECTIONS 3  // numero maximo de coneções
 #define DATA_PORT 2000      // numero da porta da conexão de dados
 #define PORTA 2121          // porta que o servidor escuta
 
@@ -51,6 +52,7 @@ int criarConexaoDados(const struct sockaddr_in * ca);
 void list(const struct sockaddr_in * ca, char * folder);
 int retr(int cd, const struct sockaddr_in * ca, char * file);
 int stor(int cd, const struct sockaddr_in * ca, char * file);
+
 
 //threads
 //void *receberThread(void *arg); //put
