@@ -317,7 +317,7 @@ int stor(int cd, const struct sockaddr_in * ca, char * file, int velocidade){
   int sd = criarConexaoDados(ca);
   int length = read(sd, data, BUF_SIZE);
   while(length > 0){
-      usleep(velocidade * 10);
+      usleep(velocidade);
       fwrite(data, 1, length, fp);
       length = read(sd, data, BUF_SIZE);
   }
@@ -370,14 +370,14 @@ void *enviarThread(void *arg){
   if(tipo == 1){
     printf("Entrou na thread 1\n");
     while(length > meio){
-        usleep(velocidade * 10);
+        usleep(velocidade);
         write(sd, data, length);
         length = fread(data, 1, BUF_SIZE, fp);
     }
   }else{
     printf("Entrou na thread 2\n");
     while(novoMeio > 0){
-        usleep(velocidade * 10);
+        usleep(velocidade);
         write(sd, data, novoMeio);
         novoMeio = fread(data, 1, BUF_SIZE, fp);
     }
@@ -407,12 +407,13 @@ int QoS(char ipCliente[]){
         printf("Cliente: %s\n", linhaArquivo);
         fgets(linhaArquivo, sizeof(linhaArquivo), arq);
         velocidade = atoi(linhaArquivo);
-        printf("Velocidae: %d\n", velocidade );
+        printf("Velocidae: %d KBYtes/s\n", velocidade);
         break;
       }
     }
 
     fclose(arq);
-    return velocidade;
+    printf("Tempo do Sleep: %d\n", (BUF_SIZE*1000)/velocidade );
+    return velocidade = (BUF_SIZE*1000)/velocidade;
 
 }

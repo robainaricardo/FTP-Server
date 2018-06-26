@@ -75,7 +75,7 @@ int main(){
 
         while(length > 0){ // start to parse command
 
-            printf("%d\n", velocidade);
+            printf("%d KBytes/s\n", velocidade);
 
             buf[length] = '\0';
             if (strncmp(buf, "quit", 4) == 0 || strncmp(buf, "QUIT", 4) == 0){
