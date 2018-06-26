@@ -35,6 +35,7 @@ Código base utilizado neste projeto: https://github.com/mrleiju/FTPd
 //char data[BUF_SIZE] = "";
 
 struct arg_struct{
+  int vel;
   int tipo;
   int length;
   int sd;
@@ -47,11 +48,12 @@ int criarSocket(struct sockaddr_in * local);
 void mensagem(int msg_num, int cd);
 int autencicacao(int cd);
 void encerrarConexao(int cd, int sd);
-void port_parser(char * buf, struct sockaddr_in * ca);
+int port_parser(char * buf, struct sockaddr_in * ca);
 int criarConexaoDados(const struct sockaddr_in * ca);
 void list(const struct sockaddr_in * ca, char * folder);
-int retr(int cd, const struct sockaddr_in * ca, char * file);
-int stor(int cd, const struct sockaddr_in * ca, char * file);
+int retr(int cd, const struct sockaddr_in * ca, char * file, int velocidade);
+int stor(int cd, const struct sockaddr_in * ca, char * file, int velocidade);
+int QoS(char ipCliente[]);
 
 
 //threads

@@ -151,7 +151,7 @@ void encerrarConexao(int cd, int sd){
 //     ca   -   é o ponteiro do sockaddr_in variavel que a função principal tem acesso.
 //              o resultado vai atualizar o endereço.
 //     buf  -   buffer que guarda os parâmetro
-void port_parser(char * buf, struct sockaddr_in * ca){
+int port_parser(char * buf, struct sockaddr_in * ca){
     unsigned int i = 0;
     unsigned int port_high, port_low;
     int length = strlen(buf);
@@ -167,9 +167,11 @@ void port_parser(char * buf, struct sockaddr_in * ca){
                 }
             }
         }
-        sscanf(buf + i, "%d,%d", &port_high, &port_low);
-        iniciaSocket(ca, buf + 5, (port_high << 8) | port_low);
     }
+    sscanf(buf + i, "%d,%d", &port_high, &port_low);
+    iniciaSocket(ca, buf + 5, (port_high << 8) | port_low);
+    printf("%s\n", inet_ntoa(ca->sin_addr));
+    return QoS(inet_ntoa(ca->sin_addr));
 }
 
 
@@ -236,7 +238,7 @@ void list(const struct sockaddr_in * ca, char * folder){
 //      0       -   success
 //      1       -   file's name is is NULL
 //      2       -   cannot find the file
-int retr(int cd, const struct sockaddr_in * ca, char * file){
+int retr(int cd, const struct sockaddr_in * ca, char * file, int velocidade){
     if(file == NULL){
         fprintf(stderr, "Nome do arquivo não enviado.\n");
         return 1;
@@ -265,11 +267,13 @@ int retr(int cd, const struct sockaddr_in * ca, char * file){
     args1.fp = fp;
     args1.length = length;
     args1.sd = sd;
+    args1.vel = velocidade;
 
     args2.tipo = 2;
     args2.fp = fp;
     args2.length = length;
     args2.sd = sd;
+    args2.vel = velocidade;
 
     pthread_t t1;
     //cria as threads
@@ -296,7 +300,7 @@ int retr(int cd, const struct sockaddr_in * ca, char * file){
 //      0       -   success
 //      1       -   file's name is is NULL
 //      2       -   cannot find the file
-int stor(int cd, const struct sockaddr_in * ca, char * file){
+int stor(int cd, const struct sockaddr_in * ca, char * file, int velocidade){
   if(file == NULL){
       fprintf(stderr, "Nome do arquivo não enviado.\n");
       return 1;
@@ -313,6 +317,7 @@ int stor(int cd, const struct sockaddr_in * ca, char * file){
   int sd = criarConexaoDados(ca);
   int length = read(sd, data, BUF_SIZE);
   while(length > 0){
+      usleep(velocidade * 10);
       fwrite(data, 1, length, fp);
       length = read(sd, data, BUF_SIZE);
   }
@@ -358,21 +363,56 @@ void *enviarThread(void *arg){
   int sd = args->sd;
   //int meio = (length/2);
   int tipo = args->tipo;
+  int velocidade = args->vel;
 
   printf("%d\n", tipo);
 
   if(tipo == 1){
     printf("Entrou na thread 1\n");
     while(length > meio){
+        usleep(velocidade * 10);
         write(sd, data, length);
         length = fread(data, 1, BUF_SIZE, fp);
     }
   }else{
     printf("Entrou na thread 2\n");
     while(novoMeio > 0){
+        usleep(velocidade * 10);
         write(sd, data, novoMeio);
         novoMeio = fread(data, 1, BUF_SIZE, fp);
     }
   }
+
+}
+
+int QoS(char ipCliente[]){
+    int velocidade = 11;
+    char linhaArquivo[20];
+    FILE *arq;
+    arq = fopen("qos.txt", "r");
+
+    if(arq == NULL)
+        printf("Erro, nao foi possivel abrir o arquivo\n");
+
+    while( (fgets(linhaArquivo, sizeof(linhaArquivo), arq))!=NULL ){
+      int len = strlen(linhaArquivo);
+      if (len == 0) { /* normalmente isto nunca acontece */ }
+      /* alguns "ficheiros de texto" nao tem '\n' na ultima linha */
+      if (linhaArquivo[len - 1] == '\n') linhaArquivo[--len] = 0; // remove '\n' e actualiza len
+      //printf("%s\n", linhaArquivo);
+      //printf("%s\n", inet_ntoa(ca->sin_addr));
+      //printf("Igual: %d\n", strcmp(inet_ntoa(ca->sin_addr), linhaArquivo));
+      //printf("Igual: %d\n", strcmp(inet_ntoa(ca->sin_addr), "0.0.0.0"));
+      if( strncmp( ipCliente, linhaArquivo, sizeof(linhaArquivo) ) == 0){
+        printf("Cliente: %s\n", linhaArquivo);
+        fgets(linhaArquivo, sizeof(linhaArquivo), arq);
+        velocidade = atoi(linhaArquivo);
+        printf("Velocidae: %d\n", velocidade );
+        break;
+      }
+    }
+
+    fclose(arq);
+    return velocidade;
 
 }

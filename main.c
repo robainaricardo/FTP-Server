@@ -15,6 +15,8 @@ Código base utilizado neste projeto: https://github.com/mrleiju/FTPd
 
 #include"lib.h"
 
+volatile int recurso = 30;
+
 // Main function controling the entire logic of the ftp server
 int main(){
     // initialize socket descriptor and sockaddr_in variable
@@ -46,7 +48,7 @@ int main(){
 
     while(true){ // keep listening on the port
         printf("+++++++++++++++++    Servidor FTP ON     ++++++++++++++++++\n");
-
+        int velocidade = 0;
 
         // cd is the connection descriptor
         image_mode = false;
@@ -65,8 +67,16 @@ int main(){
             continue;
         }
 
+
+
         length = read(cd, buf, BUF_SIZE - 1);
+
+
+
         while(length > 0){ // start to parse command
+
+            printf("%d\n", velocidade);
+
             buf[length] = '\0';
             if (strncmp(buf, "quit", 4) == 0 || strncmp(buf, "QUIT", 4) == 0){
                 mensagem(221, cd);
@@ -104,7 +114,9 @@ int main(){
                 }
             }
             else if (strncmp(buf, "PORT ", 5) == 0){
-                port_parser(buf, &ca);
+                velocidade = port_parser(buf, &ca);
+                recurso -= velocidade;
+                printf("Recurso total: %d\n", recurso);
                 mensagem(200, cd);
             }
             else if (strncmp(buf, "LIST", 4) == 0){
@@ -118,7 +130,7 @@ int main(){
             else if (strncmp(buf, "RETR ", 5) == 0){
                 // get
                 if (image_mode){
-                    if(retr(cd, &ca, strtok(buf + 5, "\r\n")) > 0)
+                    if(retr(cd, &ca, strtok(buf + 5, "\r\n"), velocidade) > 0)
                         mensagem(550, cd);
                     else
                         mensagem(226, cd);
@@ -129,7 +141,7 @@ int main(){
             else if (strncmp(buf, "STOR ", 5) == 0){
                 // put
                 if (image_mode){
-                    if(stor(cd, &ca, strtok(buf + 5, "\r\n")) > 0)
+                    if(stor(cd, &ca, strtok(buf + 5, "\r\n"), velocidade) > 0)
                         mensagem(550, cd);
                     else
                         mensagem(226, cd);
