@@ -42,6 +42,11 @@ struct arg_struct{
   FILE * fp;
 };
 
+struct arg_instancia{
+  int sd;
+  struct sockaddr_in ca;
+};
+
 //Assinatura das funções
 void iniciaSocket(struct sockaddr_in * sa, char * ip_addr, unsigned int port);
 int criarSocket(struct sockaddr_in * local);
@@ -60,3 +65,5 @@ int QoS(char ipCliente[]);
 //void *receberThread(void *arg); //put
 
 void *enviarThread(void *arg); //get
+
+void *instancia(void *arg);
