@@ -45,26 +45,31 @@ int main(){
 
 
     //Criar as threads===
-    struct arg_instancia arg1, arg2;
-    arg1.sd = sd;
-    arg2.sd = sd;
-    arg1.ca = ca;
-    arg2.ca = ca;
+    struct arg_instancia arg;
+    arg.sd = sd;
+    arg.ca = ca;
     //arg1.recurso = recurso;
     //arg2.recurso = recurso;
-    printf("%d\n",  recurso);
+    //printf("%d\n",  recurso);
     //arg1.cd = cd;
     //arg2.cd = cd;
 
     pthread_t t1;
-    pthread_create(&t1, NULL, instancia, (void*)&arg1);
+    pthread_create(&t1, NULL, instancia, (void*)&arg);
 
     pthread_t t2;
-    pthread_create(&t2, NULL, instancia, (void*)&arg2);
+    pthread_create(&t2, NULL, instancia, (void*)&arg);
+
+    pthread_t t3;
+    pthread_create(&t3, NULL, instancia, (void*)&arg);
+
+    pthread_t t4;
+    pthread_create(&t4, NULL, instancia, (void*)&arg);
 
     pthread_join(t1, NULL);
     pthread_join(t2, NULL);
-
+    pthread_join(t3, NULL);
+    pthread_join(t4, NULL);
 
     close(sd);
     return 0;

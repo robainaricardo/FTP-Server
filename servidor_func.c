@@ -433,7 +433,6 @@ void *instancia(void *arg){
   ca = args->ca;
   //int recurso = args->recurso;
 
-  printf("--%d\n",recurso );
 
   while(true){ // keep listening on the port
       printf("+++++++++++++++++    Servidor FTP ON     ++++++++++++++++++\n");
