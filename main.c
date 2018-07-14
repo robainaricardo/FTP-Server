@@ -16,10 +16,11 @@ Código base utilizado neste projeto: https://github.com/mrleiju/FTPd
 #include"lib.h"
 
 
-
-
 // Main function controling the entire logic of the ftp server
 int main(){
+
+    int recurso = 10000;
+
     // initialize socket descriptor and sockaddr_in variable
     unsigned int port = PORTA;
     char buf[BUF_SIZE + 1] = "";
@@ -29,8 +30,6 @@ int main(){
     struct sockaddr_in sa, ca;
     iniciaSocket(&sa, NULL, port);
     int sd = criarSocket(&sa);
-
-    int recurso = 10000;
 
     if (sd < 0){
         fprintf(stderr, "Erro ao crirar o socket!");
